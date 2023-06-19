@@ -1,0 +1,5 @@
+-Mask R-CNN is based on top of Faster R-CNN
+-There are two common situations where one might want to modify one of the available models in torchivision modelzoo. The first is when we want to start from a pre-trained model, and just finetune the last layer. The other is when we want to replace the backbone of the model with a different one.
+1 - Finetuning from a pretrained model:
+-
+2 - Modifying the model to add a different backbone
