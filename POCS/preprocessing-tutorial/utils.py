@@ -6,10 +6,17 @@ from skimage import measure, segmentation
 import scipy.ndimage as ndimage
 import numpy as np
 import matplotlib
+from tqdm import tqdm
 
-def load_scan(path):
-  itkimage = sitk.ReadImage(path)
-  return sitk.GetArrayFromImage(itkimage)
+def load_scan(path: str, meta: bool = False) -> np.ndarray:
+    itkimage = sitk.ReadImage(path)
+
+    if meta:
+        origin = np.array(list(reversed(itkimage.GetOrigin())))
+        spacing = np.array(list(reversed(itkimage.GetSpacing())))
+        return sitk.GetArrayFromImage(itkimage), origin, spacing
+
+    return sitk.GetArrayFromImage(itkimage)
 
 def plot_3d(image, threshold=-300, name=None):
     p = image.transpose(2, 1, 0)
@@ -104,3 +111,9 @@ def optimized_separate_lungs(image):
     # segmented = np.where(lungfilter == 1, image, -2000*np.ones((512, 512)))
     
     return lungfilter * 1 # converting into 0 and 1
+
+def segmented_entire_image(image):
+    for i, axial_slice in tqdm(enumerate(image)):
+        image[i] = optimized_separate_lungs(axial_slice)
+
+    return image
