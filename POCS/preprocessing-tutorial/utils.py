@@ -12,8 +12,8 @@ def load_scan(path: str, meta: bool = False) -> np.ndarray:
     itkimage = sitk.ReadImage(path)
 
     if meta:
-        origin = np.array(list(reversed(itkimage.GetOrigin())))
-        spacing = np.array(list(reversed(itkimage.GetSpacing())))
+        origin = np.array(list(itkimage.GetOrigin()))
+        spacing = np.array(list(itkimage.GetSpacing()))
         return sitk.GetArrayFromImage(itkimage), origin, spacing
 
     return sitk.GetArrayFromImage(itkimage)
@@ -109,6 +109,10 @@ def optimized_separate_lungs(image):
     
     #Apply the lungfilter (note the filtered areas being assigned -2000 HU)
     # segmented = np.where(lungfilter == 1, image, -2000*np.ones((512, 512)))
+
+    ### added by me!! experiment to check if that way the nodules fit the lung mask
+    # lungfilter = ndimage.morphology.binary_erosion(lungfilter, iterations = 15)
+    # lungfilter = ndimage.morphology.binary_dilation(lungfilter, iterations = 30)
     
     return lungfilter * 1 # converting into 0 and 1
 
@@ -117,3 +121,14 @@ def segmented_entire_image(image):
         image[i] = optimized_separate_lungs(axial_slice)
 
     return image
+
+def normalize_planes(npzarray):
+    """
+    used to generate 8bit image from 16bit (keep all visual information)
+    """
+    maxHU = 400.
+    minHU = -1000.
+    npzarray = (npzarray - minHU) / (maxHU - minHU)
+    npzarray[npzarray>1] = 1.
+    npzarray[npzarray<0] = 0.
+    return npzarray

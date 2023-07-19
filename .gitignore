@@ -2,5 +2,6 @@
 *.png
 *.jpg
 *.csv
+*.jpeg
 *__pycache__
 .ipynb_checkpoints
