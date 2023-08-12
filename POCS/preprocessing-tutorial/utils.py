@@ -122,6 +122,7 @@ def segmented_entire_image(image):
 
     return image
 
+# not used, because the current segment algorithm uses the HU values
 def normalize_planes(npzarray):
     """
     used to generate 8bit image from 16bit (keep all visual information)

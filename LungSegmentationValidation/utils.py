@@ -8,14 +8,6 @@ from scipy import ndimage as ndi
 from skimage.filters import roberts
 from skimage.morphology import convex_hull_image, disk, binary_closing
 
-def load_itk(filename):
-    itkimage = sitk.ReadImage(filename)
-    image_array = sitk.GetArrayFromImage(itkimage)
-    origin = np.array(list(reversed(itkimage.GetOrigin())))
-    spacing = np.array(list(reversed(itkimage.GetSpacing())))
-
-    return image_array, origin, spacing
-
 def resample(image, previous_spacing, new_spacing=[1,1,1]):
     # Determine current pixel spacing
     spacing = np.array(previous_spacing, dtype=np.float32)
@@ -48,7 +40,8 @@ def get_segmented_lungs(im, plot=False):
 
     # Step 1: Convert into a binary image.
     # image label: 1
-    binary = im < -604
+    # binary = im < -604
+    binary = im < -200
     if plot:
         plots[plt_number].axis('off')
         plots[plt_number].set_title(f'{plt_number}')
@@ -155,3 +148,37 @@ def get_segmented_lungs(im, plot=False):
 
     # return im
     return binary * 1
+
+def normalize_planes(npzarray):
+    """
+    used to generate 8bit image from 16bit (keep all visual information)
+    """
+    maxHU = 400.
+    minHU = -1000.
+    npzarray = (npzarray - minHU) / (maxHU - minHU)
+    npzarray[npzarray>1] = 1.
+    npzarray[npzarray<0] = 0.
+    return npzarray
+
+def load_itk(filename):
+    itkimage = sitk.ReadImage(filename)
+    image_array = sitk.GetArrayFromImage(itkimage)
+    origin = np.array(list(reversed(itkimage.GetOrigin())))
+    spacing = np.array(list(reversed(itkimage.GetSpacing())))
+
+    return image_array, origin, spacing
+
+def window_image(img, window_center, window_width):
+    img_min = window_center - window_width // 2
+    img_max = window_center + window_width // 2
+    # img_min = window_center
+    # img_max = window_width
+
+    print('generated limits: ')
+    print(img_min, img_max)
+    window_image = img.copy()
+    window_image[window_image < img_min] = img_min
+    window_image[window_image > img_max] = img_max
+
+    return window_image
+
