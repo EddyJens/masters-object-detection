@@ -1,15 +1,10 @@
-import SimpleITK as sitk
+import ast
 import numpy as np
+import SimpleITK as sitk
 
-def normalize_planes(npzarray):
-    # maxHU = 400.
-    maxHU = 1500.
-    # minHU = -1000.
-    minHU = -600.
-    npzarray = (npzarray - minHU) / (maxHU - minHU)
-    npzarray[npzarray>1] = 1.
-    npzarray[npzarray<0] = 0.
-    return npzarray
+def from_np_array(array_string):
+    array_string = ','.join(array_string.replace('[  ', '[').replace('[ ', '[').split())
+    return np.array(ast.literal_eval(array_string))
 
 def load_itk(filename):
     itkimage = sitk.ReadImage(filename)
@@ -18,4 +13,3 @@ def load_itk(filename):
     spacing = np.array(list(reversed(itkimage.GetSpacing())))
 
     return image_array, origin, spacing
-
