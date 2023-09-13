@@ -46,11 +46,15 @@ def visualize_one_xy_slice_in_3d_image(gt_boxes, image, pred_boxes, gt_box_index
         color=(0, 255, 0),  # green for GT
         thickness=1,
     )
+
+    print('voxel coordinate of expected: ' + str(draw_box))
+    
     # draw predicted boxes
     for bbox in pred_boxes:
         bbox = np.round(bbox).astype(int).tolist()
         if bbox[5] < draw_box[2] or bbox[2] > draw_box[5]:
             continue
+
         cv2.rectangle(
             draw_img,
             pt1=(bbox[1], bbox[0]),

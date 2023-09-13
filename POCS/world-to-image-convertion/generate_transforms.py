@@ -25,8 +25,10 @@ from monai.apps.detection.transforms.dictionary import (
     RandFlipBoxd,
     RandRotateBox90d,
     RandZoomBoxd,
+    ConvertBoxModed,
     StandardizeEmptyBoxd,
 )
+
 
 def generate_detection_train_transform(
     image_key,
@@ -37,14 +39,33 @@ def generate_detection_train_transform(
     patch_size,
     batch_size,
     affine_lps_to_ras=False,
-    amp=True
+    amp=True,
 ):
+    """
+    Generate training transform for detection.
+
+    Args:
+        image_key: the key to represent images in the input json files
+        box_key: the key to represent boxes in the input json files
+        label_key: the key to represent box labels in the input json files
+        gt_box_mode: ground truth box mode in the input json files
+        intensity_transform: transform to scale image intensities,
+            usually ScaleIntensityRanged for CT images, and NormalizeIntensityd for MR images.
+        patch_size: cropped patch size for training
+        batch_size: number of cropped patches from each image
+        affine_lps_to_ras: Usually False.
+            Set True only when the original images were read by itkreader with affine_lps_to_ras=True
+        amp: whether to use half precision
+
+    Return:
+        training transform for detection
+    """
     if amp:
         compute_dtype = torch.float16
     else:
         compute_dtype = torch.float32
 
-    return Compose(
+    train_transforms = Compose(
         [
             LoadImaged(keys=[image_key], meta_key_postfix="meta_dict"),
             EnsureChannelFirstd(keys=[image_key]),
@@ -156,6 +177,8 @@ def generate_detection_train_transform(
             EnsureTyped(keys=[label_key], dtype=torch.long),
         ]
     )
+    return train_transforms
+
 
 def generate_detection_val_transform(
     image_key,
@@ -166,6 +189,23 @@ def generate_detection_val_transform(
     affine_lps_to_ras=False,
     amp=True,
 ):
+    """
+    Generate validation transform for detection.
+
+    Args:
+        image_key: the key to represent images in the input json files
+        box_key: the key to represent boxes in the input json files
+        label_key: the key to represent box labels in the input json files
+        gt_box_mode: ground truth box mode in the input json files
+        intensity_transform: transform to scale image intensities,
+            usually ScaleIntensityRanged for CT images, and NormalizeIntensityd for MR images.
+        affine_lps_to_ras: Usually False.
+            Set True only when the original images were read by itkreader with affine_lps_to_ras=True
+        amp: whether to use half precision
+
+    Return:
+        validation transform for detection
+    """
     if amp:
         compute_dtype = torch.float16
     else:
@@ -194,3 +234,66 @@ def generate_detection_val_transform(
     return val_transforms
 
 
+def generate_detection_inference_transform(
+    image_key,
+    pred_box_key,
+    pred_label_key,
+    pred_score_key,
+    gt_box_mode,
+    src_mode,
+    intensity_transform,
+    affine_lps_to_ras=False,
+    amp=True,
+):
+    """
+    Generate validation transform for detection.
+
+    Args:
+        image_key: the key to represent images in the input json files
+        pred_box_key: the key to represent predicted boxes
+        pred_label_key: the key to represent predicted box labels
+        pred_score_key: the key to represent predicted classification scores
+        gt_box_mode: ground truth box mode in the input json files
+        intensity_transform: transform to scale image intensities,
+            usually ScaleIntensityRanged for CT images, and NormalizeIntensityd for MR images.
+        affine_lps_to_ras: Usually False.
+            Set True only when the original images were read by itkreader with affine_lps_to_ras=True
+        amp: whether to use half precision
+
+    Return:
+        validation transform for detection
+    """
+    if amp:
+        compute_dtype = torch.float16
+    else:
+        compute_dtype = torch.float32
+
+    test_transforms = Compose(
+        [
+            LoadImaged(keys=[image_key], meta_key_postfix="meta_dict"),
+            EnsureChannelFirstd(keys=[image_key]),
+            EnsureTyped(keys=[image_key], dtype=torch.float32),
+            Orientationd(keys=[image_key], axcodes="RAS"),
+            intensity_transform,
+            EnsureTyped(keys=[image_key], dtype=compute_dtype),
+        ]
+    )
+    post_transforms = Compose(
+        [
+            ClipBoxToImaged(
+                box_keys=[pred_box_key],
+                label_keys=[pred_label_key, pred_score_key],
+                box_ref_image_keys=image_key,
+                remove_empty=True,
+            ),
+            AffineBoxToWorldCoordinated(
+                box_keys=[pred_box_key],
+                box_ref_image_keys=image_key,
+                image_meta_key_postfix="meta_dict",
+                affine_lps_to_ras=affine_lps_to_ras,
+            ),
+            ConvertBoxModed(box_keys=[pred_box_key], src_mode=src_mode, dst_mode=gt_box_mode),
+            DeleteItemsd(keys=[image_key]),
+        ]
+    )
+    return test_transforms, post_transforms

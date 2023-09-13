@@ -11,7 +11,7 @@ def load_itk(filename):
 
     return image_array, origin, spacing
 
-def resample(image, previous_spacing, new_spacing=[1,1,1]):
+def resample(image, previous_spacing, new_spacing=[0.703125, 0.703125, 1.25]):
     # Determine current pixel spacing
     spacing = np.array(previous_spacing, dtype=np.float32)
     resize_factor = spacing / new_spacing
@@ -55,6 +55,7 @@ def gen_coordinate_and_masks(img):
     # create outliers list, based on a threshold
     outliers = []
     refined = []
+    
     for unique_value in sorted_disto:
         if unique_value['distance'] > 1500:
             outliers.append(unique_value)

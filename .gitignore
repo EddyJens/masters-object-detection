@@ -5,3 +5,7 @@
 *.jpeg
 *__pycache__
 *.ipynb_checkpoints
+*.mhd
+*.mhd.obj
+*.nii.obj
+*.raw
