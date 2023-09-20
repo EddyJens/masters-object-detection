@@ -46,8 +46,6 @@ def visualize_one_xy_slice_in_3d_image(gt_boxes, image, pred_boxes, gt_box_index
         color=(0, 255, 0),  # green for GT
         thickness=1,
     )
-
-    print('voxel coordinate of expected: ' + str(draw_box))
     
     # draw predicted boxes
     for bbox in pred_boxes:
