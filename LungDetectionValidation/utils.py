@@ -63,7 +63,11 @@ def calc_iou(target, prediction):
 
     return vol_of_overlap/vol_of_union
 
-def nms_pytorch(P: torch.tensor, thresh_iou: float):
+def vanilla_nms_pytorch(P: torch.tensor, thresh_iou: float):
+    """
+    Vanilla implementation
+    ref: https://pyimagesearch.com/2015/02/16/faster-non-maximum-suppression-python/
+    """
     x1 = P[:, 0]
     y1 = P[:, 1]
     z1 = P[:, 2]
