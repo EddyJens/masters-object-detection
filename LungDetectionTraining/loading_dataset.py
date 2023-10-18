@@ -5,15 +5,23 @@ from generate_transforms import (
 )
 from monai.data import load_decathlon_datalist, Dataset, DataLoader
 from monai.data.utils import no_collation
+import torch
 
 def load_data(
     gt_box_mode, patch_size, batch_size, amp, data_list_file_path, data_base_dir
 ):
+
+    amp = True
+    if amp:
+        compute_dtype = torch.float16
+    else:
+        compute_dtype = torch.float32
+    
     ## ref windowing: https://www.kaggle.com/code/bardiakh/monai-io-windowing-overlay-saving
     intensity_transform = ScaleIntensityRanged(
         keys=["image"],
-        a_min=-1024,
-        a_max=300.0,
+        a_min=-1000.0, # -1024
+        a_max=-200.0, # 300.0
         b_min=0.0,
         b_max=1.0,
         clip=True
@@ -46,9 +54,9 @@ def load_data(
 
     train_loader = DataLoader(
         train_ds,
-        batch_size=1,
+        batch_size=2,
         shuffle=True,
-        pin_memory=False,
+        pin_memory=torch.cuda.is_available(),
         collate_fn=no_collation
     )
 
@@ -70,8 +78,8 @@ def load_data(
 
     val_loader = DataLoader(
         val_ds,
-        batch_size=1,
-        pin_memory=False,
+        batch_size=2,
+        pin_memory=torch.cuda.is_available(),
         collate_fn=no_collation,
     )
 
