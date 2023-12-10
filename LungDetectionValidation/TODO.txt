@@ -1,0 +1,7 @@
+Tests to generate:
+
+-run all models with the same windowing
+-run each model with each corresponding windowing of training
+
+window standard value source:
+https://pubmed.ncbi.nlm.nih.gov/8537208/
