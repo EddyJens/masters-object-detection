@@ -21,7 +21,7 @@ def load_data(
     intensity_transform = ScaleIntensityRanged(
         keys=["image"],
         a_min=-1000.0, # -1024
-        a_max=-200.0, # 300.0
+        a_max=400.0, # 300.0
         b_min=0.0,
         b_max=1.0,
         clip=True
