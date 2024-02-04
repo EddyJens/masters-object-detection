@@ -1,7 +1,11 @@
-Tests to generate:
-
--run all models with the same windowing
--run each model with each corresponding windowing of training
 
 window standard value source:
 https://pubmed.ncbi.nlm.nih.gov/8537208/
+
+Metrics to calculate:
+-Precision x Recall curve - done
+-generate FROC curve for all algorithms - done
+-generate FROC curve for all algorithm runs in the same window values - done
+-Recall x IoU - could not find code neither references on how to generate curve
+-implement NMS and classificator commitee - done
+-generate visual plots of tp, fp, fn

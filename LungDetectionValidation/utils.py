@@ -1,6 +1,11 @@
+"""
+helpful functions used by multiple scripts
+"""
 import numpy as np
 import SimpleITK as sitk
 import torch
+import matplotlib.pyplot as plt
+from monai.metrics import compute_froc_curve_data, compute_froc_score
 
 def load_itk(filename):
     itkimage = sitk.ReadImage(filename)
@@ -119,27 +124,72 @@ def vanilla_nms_pytorch(P: torch.tensor, thresh_iou: float):
     
     return keep
 
+def gen_froc_plot(all_fps_per_image, all_total_sensitivity):
+    _, ax = plt.subplots()
 
+    plt.plot(all_fps_per_image[0], all_total_sensitivity[0]*100, color='red', label='a_min=-1000.0, a_max=-200.0')
+    plt.plot(all_fps_per_image[1], all_total_sensitivity[1]*100, color='blue', label='a_min=-1000.0, a_max=0')
+    plt.plot(all_fps_per_image[2], all_total_sensitivity[2]*100, color='green', label='a_min=-1000.0, a_max=400.0')
+    plt.plot(all_fps_per_image[3], all_total_sensitivity[3]*100, color='orange', label='a_min=-1000.0, a_max=200.0')
+    plt.plot(all_fps_per_image[4], all_total_sensitivity[4]*100, color='black', label='all')
+    plt.xlabel('FP/exame')
+    plt.ylabel('Sensibilidade (%)')
+    plt.grid(True, linestyle='dashed')
+    plt.legend()
+    plt.xlim(0, 8)
+    # plt.ylim(75, 100)
+    a = np.arange(7)
+    ax.xaxis.set_ticks(a)
+    ax.xaxis.set_ticklabels(['1/8', '2/8', '4/8', 1, 2, 4, 8])
 
+def gen_precision_recall_plot(precision_recall_curve, all_testy, all_lr_probs):
+    lr_precision, lr_recall, _ = precision_recall_curve(all_testy[0], all_lr_probs[0])
+    lr_precision1, lr_recall1, _ = precision_recall_curve(all_testy[1], all_lr_probs[1])
+    lr_precision2, lr_recall2, _ = precision_recall_curve(all_testy[2], all_lr_probs[2])
+    lr_precision3, lr_recall3, _ = precision_recall_curve(all_testy[3], all_lr_probs[3])
+    lr_precision4, lr_recall4, _ = precision_recall_curve(all_testy[4], all_lr_probs[4])
+    plt.plot(lr_recall, lr_precision, color='red', label='a_min=-1000.0, a_max=-200.0')
+    plt.plot(lr_recall1, lr_precision1, color='blue', label='a_min=-1000.0, a_max=0')
+    plt.plot(lr_recall2, lr_precision2, color='green', label='a_min=-1000.0, a_max=400.0')
+    plt.plot(lr_recall3, lr_precision3, color='orange', label='a_min=-1000.0, a_max=200.0')
+    plt.plot(lr_recall4, lr_precision4, color='black', label='all')
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.legend()
+    plt.show()
 
+def gen_tabular_data(
+        tp, fp, fn, fp_probs, tp_probs, num_images, num_targets
+):
+    precision = tp /(tp + fp)
+    recall = tp/ (tp + fn)
+    fps_per_image, total_sensitivity = compute_froc_curve_data(
+        fp_probs=np.array(fp_probs),
+        tp_probs=np.array(tp_probs),
+        num_targets=num_targets,
+        num_images=num_images
+    )
 
+    p1 = compute_froc_score(fps_per_image, total_sensitivity, eval_thresholds=(0.125))
+    p2 = compute_froc_score(fps_per_image, total_sensitivity, eval_thresholds=(0.25))
+    p3 = compute_froc_score(fps_per_image, total_sensitivity, eval_thresholds=(0.5))
+    p4 = compute_froc_score(fps_per_image, total_sensitivity, eval_thresholds=(1))
+    p5 = compute_froc_score(fps_per_image, total_sensitivity, eval_thresholds=(2))
+    p6 = compute_froc_score(fps_per_image, total_sensitivity, eval_thresholds=(4))
+    p7 = compute_froc_score(fps_per_image, total_sensitivity, eval_thresholds=(8))
+    cpm = (p1 + p2 + p3 + p4 + p5 + p6 + p7)/7
 
+    return (
+        fps_per_image, total_sensitivity, precision,
+        recall, p1, p2, p3, p4, p5, p6, p7, cpm
+    )
 
+def convert_to_tensor(pred_boxes):
+    """
+    convert voxel_min, max format to monai standard: xyzxyz
+    """
+    converted = []
+    for a in pred_boxes:
+        converted.append([a['voxel_min'][0], a['voxel_min'][1], a['voxel_min'][2], a['voxel_max'][0], a['voxel_max'][1], a['voxel_max'][2]])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
+    return torch.tensor(converted)
