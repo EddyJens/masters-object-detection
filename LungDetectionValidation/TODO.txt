@@ -9,3 +9,12 @@ Metrics to calculate:
 -Recall x IoU - could not find code neither references on how to generate curve
 -implement NMS and classificator commitee - done
 -generate visual plots of tp, fp, fn
+
+
+Files executed to perform LUNA16 validation:
+LungDetectionTraining/filtering_luna_data.ipynb
+LungDetectionValidation/a-gen_scores.ipynb
+LungDetectionValidation/b-merging_predicted_true.ipynb
+LungDetectionValidation/c-world_to_pixel.ipynb
+LungDetectionValidation/d-merging_result_files.ipynb
+LungDetectionValidation/e-metrics.ipynb

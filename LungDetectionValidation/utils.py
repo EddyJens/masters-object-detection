@@ -7,7 +7,10 @@ import torch
 import matplotlib.pyplot as plt
 from monai.metrics import compute_froc_curve_data, compute_froc_score
 
-def load_itk(filename):
+def load_itk(filename: str):
+    """
+    Based on file path load ITK exam format
+    """
     itkimage = sitk.ReadImage(filename)
     image_array = sitk.GetArrayFromImage(itkimage)
     origin = np.array(list(reversed(itkimage.GetOrigin())))
@@ -127,20 +130,31 @@ def vanilla_nms_pytorch(P: torch.tensor, thresh_iou: float):
 def gen_froc_plot(all_fps_per_image, all_total_sensitivity):
     _, ax = plt.subplots()
 
-    plt.plot(all_fps_per_image[0], all_total_sensitivity[0]*100, color='red', label='a_min=-1000.0, a_max=-200.0')
-    plt.plot(all_fps_per_image[1], all_total_sensitivity[1]*100, color='blue', label='a_min=-1000.0, a_max=0')
-    plt.plot(all_fps_per_image[2], all_total_sensitivity[2]*100, color='green', label='a_min=-1000.0, a_max=400.0')
-    plt.plot(all_fps_per_image[3], all_total_sensitivity[3]*100, color='orange', label='a_min=-1000.0, a_max=200.0')
-    plt.plot(all_fps_per_image[4], all_total_sensitivity[4]*100, color='black', label='all')
+    # plt.plot(all_fps_per_image[0], all_total_sensitivity[0]*100, color='red', label='a_min=-1000.0, a_max=-200.0')
+    plt.plot(
+        all_fps_per_image[0], all_total_sensitivity[0]*100, color='red', label='Modelo 1')
+    # plt.plot(all_fps_per_image[1], all_total_sensitivity[1]*100, color='blue', label='a_min=-1000.0, a_max=0')
+    plt.plot(
+        all_fps_per_image[1], all_total_sensitivity[1]*100, color='blue', label='Modelo 2')
+    # plt.plot(all_fps_per_image[2], all_total_sensitivity[2]*100, color='green', label='a_min=-1000.0, a_max=400.0')
+    plt.plot(
+        all_fps_per_image[2], all_total_sensitivity[2]*100, color='green', label='Modelo 3')
+    # plt.plot(all_fps_per_image[3], all_total_sensitivity[3]*100, color='orange', label='a_min=-1000.0, a_max=200.0')
+    plt.plot(
+        all_fps_per_image[3], all_total_sensitivity[3]*100, color='orange', label='Modelo 4')
+    plt.plot(
+        all_fps_per_image[4], all_total_sensitivity[4]*100, color='black', label='Todos os modelos')
     plt.xlabel('FP/exame')
+    # plt.xlabel('FP/exam')
     plt.ylabel('Sensibilidade (%)')
+    # plt.ylabel('Sensibility (%)')
     plt.grid(True, linestyle='dashed')
     plt.legend()
     plt.xlim(0, 8)
-    # plt.ylim(75, 100)
+    plt.ylim(0, 100)
     a = np.arange(7)
     ax.xaxis.set_ticks(a)
-    ax.xaxis.set_ticklabels(['1/8', '2/8', '4/8', 1, 2, 4, 8])
+    ax.xaxis.set_ticklabels(['1/8', '1/4', '1/2', 1, 2, 4, 8])
 
 def gen_precision_recall_plot(precision_recall_curve, all_testy, all_lr_probs):
     lr_precision, lr_recall, _ = precision_recall_curve(all_testy[0], all_lr_probs[0])

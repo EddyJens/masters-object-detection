@@ -7,7 +7,6 @@ from monai.apps.detection.networks.retinanet_network import (
 )
 from monai.apps.detection.networks.retinanet_detector import RetinaNetDetector
 
-
 def load_model(
     returned_layers, base_anchor_shapes, conv1_t_stride, n_input_channels,
     spatial_dims, fg_labels, verbose, balanced_sampler_pos_fraction,
@@ -50,6 +49,12 @@ def load_model(
         )
     )
 
+    # used to resume previous training
+    # net = torch.jit.load('/mlruns/833854784491760033/38a6655336604a06bafa99876b344b17/artifacts/model/data/model.pth')
+    # net = torch.jit.load('/mlruns/833854784491760033/63ce257b1e2c48409b7ffeeb26b4f1f1/artifacts/model/data/model.pth')
+    # net = torch.jit.load('/mlruns/833854784491760033/1f92e947841f44228a12dcfb3b9593cb/artifacts/model/data/model.pth')
+    # net = torch.jit.load('/mlruns/833854784491760033/fb8a82599c27452a804605dfc7d87f56/artifacts/model/data/model.pth')
+
     ### build detector
     detector = RetinaNetDetector(network=net, anchor_generator=anchor_generator, debug=verbose).to(device)
 
@@ -78,28 +83,5 @@ def load_model(
         device="cpu",
     )
 
-    return detector, device
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+    return detector, device  
     

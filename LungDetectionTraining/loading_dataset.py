@@ -8,7 +8,8 @@ from monai.data.utils import no_collation
 import torch
 
 def load_data(
-    gt_box_mode, patch_size, batch_size, amp, data_list_file_path, data_base_dir
+    gt_box_mode, patch_size, batch_size, amp, data_list_file_path,
+    data_base_dir, a_min, a_max
 ):
 
     amp = True
@@ -20,8 +21,8 @@ def load_data(
     ## ref windowing: https://www.kaggle.com/code/bardiakh/monai-io-windowing-overlay-saving
     intensity_transform = ScaleIntensityRanged(
         keys=["image"],
-        a_min=-1000.0, # -1024
-        a_max=400.0, # 300.0
+        a_min=a_min,
+        a_max=a_max,
         b_min=0.0,
         b_max=1.0,
         clip=True
@@ -84,30 +85,3 @@ def load_data(
     )
 
     return train_loader ,val_loader, len(train_ds)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
